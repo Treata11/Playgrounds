@@ -50,7 +50,7 @@ import BassMIDI
 @Observable
 class BassMIDIManager {
     /// channel handle
-    var chan: HSTREAM = 0
+    var chan: HSTREAM = 500
     /// soundfont
     var font: HSOUNDFONT = 0
     /// lyrics buffer
@@ -75,7 +75,10 @@ class BassMIDIManager {
         
         //        let newChan = BASS_MIDI_StreamCreateFile(false, midiPath, 0, 0, BASS_SAMPLE_FLOAT|BASS_SAMPLE_LOOP|BASS_MIDI_DECAYSEEK|(self.fxSwitch.state?0:BASS_MIDI_NOFX),1)
         
-        let newChan = BASS_MIDI_StreamCreateFile(0, midiPath, 0, 0, DWORD(BASS_SAMPLE_FLOAT | BASS_SAMPLE_LOOP | BASS_MIDI_DECAYSEEK | BASS_MIDI_NOFX), 1)
+//        let newChan = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), midiPath, 0, 0, DWORD(BASS_SAMPLE_FLOAT | BASS_SAMPLE_LOOP | BASS_MIDI_DECAYSEEK | BASS_MIDI_NOFX), 1)
+        
+        let newChan = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), midiPath, 128, 0, 0, 1)
+        
         print("BassMIDIManager; play(); newChan: \(newChan)")
         self.chan = newChan
         
@@ -89,34 +92,36 @@ class BassMIDIManager {
         // update pos scroller range (using tick length)
         self.maxPositionSlider = BASS_ChannelGetLength(newChan, DWORD(BASS_POS_MIDI_TICK)) / 120
         
-        print("BassMIDIManager Is Playing")
+        print("BassMIDIManager Is Playing with newChan: \(newChan)")
         
         openFont()
         
-        //        Task { // get default soundfont in case of matching soundfont being used
-        //            var sf: BASS_MIDI_FONT = .init();
-        //            BASS_MIDI_StreamGetFonts(newChan, &sf, 1);
-        //            font = sf.font;
-        //        }
+        Task { // get default soundfont in case of matching soundfont being used
+            var sf: BASS_MIDI_FONT = .init();
+            BASS_MIDI_StreamGetFonts(newChan, &sf, 1);
+            self.font = sf.font;
+        }
         
-        BASS_ChannelPlay(newChan, 0); // start playing
+        BASS_ChannelPlay(newChan, BOOL32(truncating: false)); // start playing
     }
     
     func openFont() {
         let newFont: HSOUNDFONT = BASS_MIDI_FontInit(soundfontPath, 0)
         
-        //        if (newFont != 0) {
-        var sf: BASS_MIDI_FONT = .init()
+        if (newFont != 0) {
+            var sf: BASS_MIDI_FONT = .init()
+            
+            sf.font = newFont;
+            sf.preset = -1; // use all presets
+            sf.bank=0; // use default bank(s)
+            
+            BASS_MIDI_StreamSetFonts(0, &sf, 1); // set default soundfont
+            BASS_MIDI_StreamSetFonts(chan, &sf, 1) // set for current stream too
+            BASS_MIDI_FontFree(font) // free old soundfont
+            self.font = newFont
+        }
         
-        sf.font = newFont;
-        sf.preset = -1; // use all presets
-        sf.bank=0; // use default bank(s)
-        
-        BASS_MIDI_StreamSetFonts(0, &sf, 1); // set default soundfont
-        BASS_MIDI_StreamSetFonts(chan, &sf, 1); // set for current stream too
-        BASS_MIDI_FontFree(font); // free old soundfont
-        font = newFont;
-        //        }
+        print("BassMIDIManager; openFont(); font: \(self.font)")
     }
     
     func timeProc() {
