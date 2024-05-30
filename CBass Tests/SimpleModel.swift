@@ -8,19 +8,21 @@
 import Foundation
 import BassMIDI
 
+let lisztPath = Bundle.main.path(forResource: "Liszt_-_Hungarian_Rhapsody_No._2", ofType: "mid")
+
 @Observable
 class SimpleModel {
-    let midiPath = Bundle.main.path(forResource: "JoyToTheWorld", ofType: "mid")
-    
     func play() {
+        BASS_Init(-1, 44100, 0, .none, .none)
+        
         // Convert the Swift string to a C-style string
-        let cMidiPath = midiPath?.cString(using: .utf8)
+//        let cMidiPath = midiPath?.cString(using: .utf8)
 
-        let chan: HSTREAM = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), cMidiPath, 0, 0, 0, 1)
+        let chan: HSTREAM = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), lisztPath, 0, 0, 0, 1)
 
         print("chan: \(chan); Note that it must not be zero")
         
-        // MARK: openFont
+        // MARK: - openFont
         
         let newfont: HSOUNDFONT = BASS_MIDI_FontInit(soundfontPath, 0);
         if ((newfont) != 0) {
@@ -39,14 +41,17 @@ class SimpleModel {
         // MARK: Play
         
         BASS_ChannelPlay(chan, BOOL32(truncating: false)); // start playing
+        
+        let error = BASS_ErrorGetCode()
+        print("error: \(error)")
     }
     
     //
     func play2() {
         DispatchQueue.main.async {
-            if let midiPath = self.midiPath {
+            if let midiPath = midiPath {
                 let cMidiPath = midiPath.cString(using: .utf8)
-                var chan = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), cMidiPath, 0, 0, 0, 1)
+                let chan = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), cMidiPath, 0, 0, 0, 1)
                 
                 print("chan: \(chan); Note that it must not be zero")
                 
@@ -81,8 +86,7 @@ struct SimpleModelView: View {
     
     var body: some View {
         Button("Play") {
-//            model.play()
-            model.play2()
+            model.play()
         }
     }
 }
@@ -90,6 +94,9 @@ struct SimpleModelView: View {
 #Preview {
     SimpleModelView()
 }
+
+
+
 
 // MARK: - From file system
 
@@ -113,7 +120,10 @@ struct FileChooserView: View {
             
             if midiPath != nil {
                 Button("Play") {
-                    let chan: HSTREAM = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), midiPath?.path(), 0, 0, 0, 1)
+                    BASS_Init(-1, 44100, 0, .none, .none)
+                    
+                    let path = midiPath?.path()
+                    let chan: HSTREAM = BASS_MIDI_StreamCreateFile(BOOL32(truncating: false), path, 0, 0, 0, 1)
 
                     print("chan: \(chan); Note that it must not be zero")
                     
@@ -136,6 +146,9 @@ struct FileChooserView: View {
                     // MARK: Play
                     
                     BASS_ChannelPlay(chan, BOOL32(truncating: false)); // start playing
+                    
+                    let error = BASS_ErrorGetCode()
+                    print("error: \(error)")
                 }
             }
         }
