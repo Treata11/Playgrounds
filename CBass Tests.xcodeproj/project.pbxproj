@@ -36,6 +36,7 @@
 		611D54102C09024F00644846 /* Liszt_-_Hungarian_Rhapsody_No._2.mid in Resources */ = {isa = PBXBuildFile; fileRef = 611D540F2C09024F00644846 /* Liszt_-_Hungarian_Rhapsody_No._2.mid */; };
 		613EA5032BFCAC8300FE41C4 /* JoyToTheWorld.mid in Resources */ = {isa = PBXBuildFile; fileRef = 613EA5022BFCAC8300FE41C4 /* JoyToTheWorld.mid */; };
 		613EA5052BFCAD0000FE41C4 /* YDP-GrandPiano_empty.sf2 in Resources */ = {isa = PBXBuildFile; fileRef = 613EA5042BFCAD0000FE41C4 /* YDP-GrandPiano_empty.sf2 */; };
+		6145D7112C09CA1500EADA6A /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6145D7102C09CA1500EADA6A /* Views.swift */; };
 		61C6A0CF2C039FBE00854F5E /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C6A0CE2C039FBE00854F5E /* Tests.swift */; };
 		61F35DF62BFC9DEE00204C90 /* CBass_TestsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F35DF52BFC9DEE00204C90 /* CBass_TestsApp.swift */; };
 		61F35DF82BFC9DEE00204C90 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F35DF72BFC9DEE00204C90 /* ContentView.swift */; };
@@ -52,6 +53,7 @@
 		611D540F2C09024F00644846 /* Liszt_-_Hungarian_Rhapsody_No._2.mid */ = {isa = PBXFileReference; lastKnownFileType = audio.midi; name = "Liszt_-_Hungarian_Rhapsody_No._2.mid"; path = "../../../Pianiso.assets.ignore/Musical-Notation Formats/Finale/Liszt_-_Hungarian_Rhapsody_No._2.mid"; sourceTree = "<group>"; };
 		613EA5022BFCAC8300FE41C4 /* JoyToTheWorld.mid */ = {isa = PBXFileReference; lastKnownFileType = audio.midi; path = JoyToTheWorld.mid; sourceTree = "<group>"; };
 		613EA5042BFCAD0000FE41C4 /* YDP-GrandPiano_empty.sf2 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "YDP-GrandPiano_empty.sf2"; sourceTree = "<group>"; };
+		6145D7102C09CA1500EADA6A /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
 		61C6A0CE2C039FBE00854F5E /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		61F35DF22BFC9DEE00204C90 /* CBass Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CBass Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		61F35DF52BFC9DEE00204C90 /* CBass_TestsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBass_TestsApp.swift; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 				61F35DF72BFC9DEE00204C90 /* ContentView.swift */,
 				61C6A0CE2C039FBE00854F5E /* Tests.swift */,
 				611D53ED2C08D19200644846 /* SimpleModel.swift */,
+				6145D7102C09CA1500EADA6A /* Views.swift */,
 				61F35DF92BFC9DF000204C90 /* Assets.xcassets */,
 				613EA5022BFCAC8300FE41C4 /* JoyToTheWorld.mid */,
 				611D540F2C09024F00644846 /* Liszt_-_Hungarian_Rhapsody_No._2.mid */,
@@ -241,6 +244,7 @@
 			files = (
 				61F35DF82BFC9DEE00204C90 /* ContentView.swift in Sources */,
 				611D53EE2C08D19200644846 /* SimpleModel.swift in Sources */,
+				6145D7112C09CA1500EADA6A /* Views.swift in Sources */,
 				61C6A0CF2C039FBE00854F5E /* Tests.swift in Sources */,
 				61F35DF62BFC9DEE00204C90 /* CBass_TestsApp.swift in Sources */,
 				6103AEFF2C089AC5001588E7 /* BassMIDIModel.swift in Sources */,

@@ -11,8 +11,7 @@ import SwiftUI
 struct CBass_TestsApp: App {
     var body: some Scene {
         WindowGroup {
-//            ContentView()
-            SimpleModelView()
+            MidiChooserView()
         }
     }
 }
