@@ -35,7 +35,7 @@ class SimpleModel {
     /// `True` if the sample stream's resources (`var stream`) is free.
     var isUnloaded: Bool = true
     
-    init(soundfontPath: String? = soundfontPath, midiPath: String? = nil) {
+    init(soundfontPath: String? = soundfontPath) {
         print("------ SimpleModel Initiated ------")
         setupSoundfont(withPath: soundfontPath)
     }
@@ -173,7 +173,7 @@ class SimpleModel {
      - Remark
      This function can be used to free all types of channel, instead of using either BASS_StreamFree or BASS_MusicFree or BASS_ChannelStop depending on the channel type.
      */
-    @MainActor
+//    @MainActor
 //    func channelFree() {
 //        self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
 //        isPlaying = false

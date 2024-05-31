@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SimpleModelView: View {
-    @Bindable private var model = SimpleModel()
+    @Environment(SimpleModel.self) private var model
     
     var body: some View {
         Text("A Default MIDI file has been chosen for playback!").bold()
@@ -27,7 +27,7 @@ struct SimpleModelView: View {
             model.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
         })
         // This Button should definitely be disabled when there are no tracks loaded
-//        .disabled(model.isUnloaded)
+        .disabled(model.isUnloaded)
         
         Button("Stream Free") {
             model.streamFree()
@@ -37,12 +37,13 @@ struct SimpleModelView: View {
 
 #Preview("SimpleModelView") {
     SimpleModelView()
+        .environment(SimpleModel())
 }
 
 // MARK: - From file system
 
 struct MidiChooserView: View {
-    @Bindable private var model = SimpleModel()
+    @Environment(SimpleModel.self) private var model
     
     @State private var midiURL: URL? = nil
 
@@ -77,9 +78,8 @@ struct MidiChooserView: View {
                     model.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
                 })
                 // This Button should definitely be disabled when there are no tracks loaded
-//                .disabled(model.isUnloaded)
+                .disabled(model.isUnloaded)
                 
-                // FIXME: Doesn't work in sim but works fine in previews ...
                 Button("Free Stream") {
                     model.streamFree()
                 }
@@ -96,4 +96,5 @@ struct MidiChooserView: View {
 
 #Preview("FileChooserView") {
     MidiChooserView()
+        .environment(SimpleModel())
 }

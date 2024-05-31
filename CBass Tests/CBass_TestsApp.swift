@@ -9,10 +9,15 @@ import SwiftUI
 
 @main
 struct CBass_TestsApp: App {
+    @Bindable private var model = SimpleModel()
+    
     var body: some Scene {
         WindowGroup {
-//            SimpleModelView()
-            MidiChooserView()
+            Group {
+                //            SimpleModelView()
+                MidiChooserView()
+            }
+            .environment(model)
         }
     }
 }
