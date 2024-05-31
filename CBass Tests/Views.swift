@@ -56,13 +56,12 @@ struct MidiChooserView: View {
             if let url = midiURL {
                 Text("Selected MIDI File: \(url.lastPathComponent)")
                     .onAppear() {
-                        let midiPath = url.path()
-                        print("MidiChooserView; midi path: \(midiPath)")
-    // FIXME: BASS is unable to read the path of file from the filesystem, but has no issues with a path excerpted from the bundle
-    // !!!: - WIP -
+                        let midiPath = url.path.removingPercentEncoding
                         model.setupMIDI(withPath: midiPath)
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            // FIXME: `isUnloaded` shouldn't be manually handled
+                            model.isUnloaded = false
                             model.play()
                         }
                     }
