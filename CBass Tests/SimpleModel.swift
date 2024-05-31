@@ -12,15 +12,7 @@ let lisztPath = Bundle.main.path(forResource: "Liszt_-_Hungarian_Rhapsody_No._2"
 
 @Observable
 class SimpleModel {
-    private(set) var stream: HSTREAM = .zero {
-        willSet {
-            if newValue != 0 {
-                if isUnloaded {
-                    isUnloaded = false
-                }
-            }
-        }
-    }
+    private(set) var stream: HSTREAM = .zero
     /**
      The `soundfond` which the model uses to play MIDIs
      If empty, no sound would be emmited!
@@ -31,12 +23,20 @@ class SimpleModel {
     
     var midiPath: String? = nil
     
+    /**
+     A variable that sets the **state** of the model.
+     Whether the audio-engine should play a newly added midi right away or not.
+     if not, the user has to manuallly play the midi when a new midi is selected.
+     */
+    var modelIsPaused = false
+    
     /// Indicates whether if the **loaded-stream** is playing or not.
     var isPlaying: Bool = true
     /// `True` if the sample stream's resources (`var stream`) is free.
     var isUnloaded: Bool = true
     
     init(soundfontPath: String? = soundfontPath, midiPath: String? = nil) {
+        print("------ SimpleModel Initiated ------")
         setupSoundfont(withPath: soundfontPath)
     }
     
@@ -52,13 +52,23 @@ class SimpleModel {
         let chan: HSTREAM = BASS_MIDI_StreamCreateFile(.false, withPath, 0, 0, 0, 1)
         self.stream = chan
         // If the channel isn't empty!
-        if chan != 0 { self.isUnloaded = false; print("-- LOADED --") } else {
+        if chan != 0 { self.isUnloaded = false; print("-- is UNLOADED?: \(self.isUnloaded) --") } else {
             // FIXME: Raise an error instead of crashing :)
             fatalError("Not a MIDI")
         }
         
-        let error = BASS_ErrorGetCode()
-        print("error: \(error)")
+//        #if DEBUG
+//            let error = BASS_ErrorGetCode()
+//            print("error: \(error)")
+//        #endif
+        
+        // Play the file right-away
+        if !modelIsPaused {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                print("Model Set to play the midi")
+                self.play()
+            }
+        }
     }
     
     /**
@@ -93,11 +103,14 @@ class SimpleModel {
     
     // MARK: Playback Intents
     
-    @MainActor
+ 
     /// start playing
+    @MainActor
     func play() {
         BASS_ChannelPlay(self.stream, .false)
         isPlaying = true
+        // !!!: Redundant
+        isUnloaded = false
     }
     
     /// Use `BASS_Start` to resume the output and paused channels.
@@ -106,6 +119,8 @@ class SimpleModel {
         if !isUnloaded {
             BASS_Start()
             isPlaying = true
+        } else if modelIsPaused {
+            play()
         }
     }
     
@@ -114,6 +129,14 @@ class SimpleModel {
     func pause() {
         if !isUnloaded {
             BASS_Pause()
+            isPlaying = false
+        }
+    }
+    
+    @MainActor
+    func stop() {
+        if !isUnloaded {
+            BASS_Stop()
             isPlaying = false
         }
     }
@@ -130,8 +153,18 @@ class SimpleModel {
      */
     @MainActor
     func streamFree() {
-        self.isUnloaded = (BASS_StreamFree(self.stream) == 0)
+        BASS_StreamFree(stream)
+        
+//        #if DEBUG
+//            let err = BASS_ErrorGetCode
+//            print("streamFree() Error code: \(err)")
+//        #endif
+        
+        self.isUnloaded = true
+        
         isPlaying = false
+        self.stream = .zero
+        self.midiPath = nil
     }
     
     /** 
@@ -141,10 +174,10 @@ class SimpleModel {
      This function can be used to free all types of channel, instead of using either BASS_StreamFree or BASS_MusicFree or BASS_ChannelStop depending on the channel type.
      */
     @MainActor
-    private func channelFree() {
-        self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
-        isPlaying = false
-    }
+//    func channelFree() {
+//        self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
+//        isPlaying = false
+//    }
 }
 
 // MARK: - Extensions

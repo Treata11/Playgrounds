@@ -27,11 +27,15 @@ struct SimpleModelView: View {
             model.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
         })
         // This Button should definitely be disabled when there are no tracks loaded
-        .disabled(model.isUnloaded)
+//        .disabled(model.isUnloaded)
+        
+        Button("Stream Free") {
+            model.streamFree()
+        }
     }
 }
 
-#Preview {
+#Preview("SimpleModelView") {
     SimpleModelView()
 }
 
@@ -40,7 +44,7 @@ struct SimpleModelView: View {
 struct MidiChooserView: View {
     @Bindable private var model = SimpleModel()
     
-    @State private var midiURL: URL?
+    @State private var midiURL: URL? = nil
 
     var body: some View {
         VStack {
@@ -55,15 +59,14 @@ struct MidiChooserView: View {
 
             if let url = midiURL {
                 Text("Selected MIDI File: \(url.lastPathComponent)")
-                    .onAppear() {
+                    .onAppear {
                         let midiPath = url.path.removingPercentEncoding
                         model.setupMIDI(withPath: midiPath)
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            // FIXME: `isUnloaded` shouldn't be manually handled
-                            model.isUnloaded = false
-                            model.play()
-                        }
+                    }
+                    .onChange(of: midiURL) {
+                        print("     MidiChooserView; midiURL has changed")
+                        let midiPath = url.path.removingPercentEncoding
+                        model.setupMIDI(withPath: midiPath)
                     }
             }
             
@@ -74,7 +77,18 @@ struct MidiChooserView: View {
                     model.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
                 })
                 // This Button should definitely be disabled when there are no tracks loaded
-                .disabled(model.isUnloaded)
+//                .disabled(model.isUnloaded)
+                
+                // FIXME: Doesn't work in sim but works fine in previews ...
+                Button("Free Stream") {
+                    model.streamFree()
+                }
+                
+                Button("Debug") {
+                    print("""
+                            model.isUnloaded: \(model.isUnloaded)
+                        """)
+                }
             }
         }
     }
