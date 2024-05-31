@@ -68,7 +68,7 @@ class BassMIDIManager {
     // MARK: - Instance Methods
     
     func play() {
-        BASS_StreamFree(chan); // free old stream before opening new
+        BASS_StreamFree(chan) // free old stream before opening new
         
         // Creates a sample stream from a MIDI file.
         // BASS_MIDI_StreamCreateFile(<#T##mem: BOOL32##BOOL32#>, <#T##file: UnsafeRawPointer!##UnsafeRawPointer!#>, <#T##offset: QWORD##QWORD#>, <#T##length: QWORD##QWORD#>, <#T##flags: DWORD##DWORD#>, <#T##freq: DWORD##DWORD#>)
