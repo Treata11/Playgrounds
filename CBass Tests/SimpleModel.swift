@@ -7,7 +7,9 @@
 
 import Foundation
 import BassMIDI
+
 // load optional plugins for packed soundfonts (others may be used too)
+//import BassFLAC
 //import BassWV
 //import BassOpus
 
@@ -45,6 +47,8 @@ class SimpleModel {
     var isUnloaded: Bool = true
     /// Length of the MIDI **in seconds**
     private(set) var length: Double = .zero
+    /// tempo adjustment
+    var speed: Float = 1
     
     init(soundfontPath: String? = soundfontPath) {
         print("------ SimpleModel Initiated ------")
@@ -120,8 +124,9 @@ class SimpleModel {
     @MainActor
     func changeTempo(by value: Float) {
         if !isUnloaded {
+            let speed = (20+value)/20 // up to +/- 50% bpm
             // apply tempo adjustment
-            BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), value)
+            BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
         }
     }
     
@@ -152,6 +157,43 @@ class SimpleModel {
             // clear lyrics
 //            lyrics = ""
 //            self.lyricsText = ""
+        }
+    }
+    
+    /// in Ticks
+    var position: Double = 0.0
+    var tempo: Double = 0.0
+    private var voices: Float = 0
+    private var fontInfo = ""
+
+    // !!!: WIP
+    @MainActor
+    func timeProc() {
+        // TODO: Deactivate this timer when the playback is paused or stopped.
+        Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [self] timer in
+            #if DEBUG
+                let now = Date.now
+                print("\n\nSimpleModel; timeProc(); timer: \(now.timeIntervalSince(timer.fireDate))")
+            #endif
+            
+            if !isUnloaded {
+                // get position in ticks
+                let tick: QWORD = BASS_ChannelGetPosition(self.stream, DWORD(BASS_POS_MIDI_TICK))
+                print("tick: \(tick)")
+                position = Double(tick) / 120.0
+                // get the file's tempo
+                let tempo = BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_TEMPO))
+                self.tempo = Double(speed * 60000000.0 / Float(tempo))
+                BASS_ChannelGetAttribute(stream, DWORD(BASS_ATTRIB_MIDI_VOICES_ACTIVE), &self.voices)
+            }
+            
+            let updateFont = true
+            if updateFont {
+                let text = "no soundfont"
+                var info = BASS_MIDI_FONTINFO()
+                // if (BASS_MIDI_FontGetInfo(self.soundfont, &info) != 0) { }
+                self.fontInfo = text
+            }
         }
     }
     

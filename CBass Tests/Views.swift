@@ -20,6 +20,20 @@ struct SimpleModelView: View {
                 }
             }
         
+        Text("Length: \(Int(model.length))")
+            .onChange(of: model.stream) {
+                model.getLength()
+            }
+        
+        Group {
+            Text("Tempo: \(Int(model.tempo))")
+            Text("Position: \(Int(model.position))")
+        }
+        .onChange(of: model.stream) {
+            model.timeProc()
+        }
+        
+        Divider()
 
         Button(action: {
             model.togglePlayback()
@@ -75,6 +89,21 @@ struct MidiChooserView: View {
                 })
                 // This Button should definitely be disabled when there are no tracks loaded
                 .disabled(model.isUnloaded)
+                
+                Text("Length: \(Int(model.length))")
+                    .onChange(of: model.stream) {
+                        model.getLength()
+                    }
+                
+                Group {
+                    Text("Tempo: \(Int(model.tempo))")
+                    Text("Position: \(Int(model.position))")
+                }
+                .onChange(of: model.stream) {
+                    model.timeProc()
+                }
+                
+                Divider()
                 
                 Button("Free Stream") {
                     model.streamFree()
