@@ -7,12 +7,21 @@
 
 import Foundation
 import BassMIDI
+// load optional plugins for packed soundfonts (others may be used too)
+//import BassWV
+//import BassOpus
 
 let lisztPath = Bundle.main.path(forResource: "Liszt_-_Hungarian_Rhapsody_No._2", ofType: "mid")
 
 @Observable
 class SimpleModel {
-    private(set) var stream: HSTREAM = .zero
+    private(set) var stream: HSTREAM = .zero {
+        didSet {
+            if oldValue != 0 {
+                getLength()
+            }
+        }
+    }
     /**
      The `soundfond` which the model uses to play MIDIs
      If empty, no sound would be emmited!
@@ -34,6 +43,8 @@ class SimpleModel {
     var isPlaying: Bool = true
     /// `True` if the sample stream's resources (`var stream`) is free.
     var isUnloaded: Bool = true
+    /// Length of the MIDI **in seconds**
+    private(set) var length: Double = .zero
     
     init(soundfontPath: String? = soundfontPath) {
         print("------ SimpleModel Initiated ------")
@@ -101,8 +112,50 @@ class SimpleModel {
         print("setupSoundfont(); font: \(newfont)")
     }
     
-    // MARK: Playback Intents
+    // MARK: - Misc
     
+    /**
+     
+     */
+    @MainActor
+    func changeTempo(by value: Float) {
+        if !isUnloaded {
+            // apply tempo adjustment
+            BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), value)
+        }
+    }
+    
+    /**
+     Retrieves the length of a channel.
+     If successful, then the channel's length is returned, else -1 is returned.
+     */
+    func getLength() {
+        if !isUnloaded {
+            // the length in bytes
+            let len: QWORD = BASS_ChannelGetLength(self.stream, DWORD(BASS_POS_BYTE))
+            // the length in seconds
+            self.length = BASS_ChannelBytes2Seconds(self.stream, len)
+        }
+    }
+    
+    // TODO: Implement the buffers
+//    /// lyrics buffer
+//    var lyrics = ""
+//    var lyricsText = ""
+    
+    @MainActor
+    func seek(to time: Double) {
+        if !isUnloaded {
+            // TODO: Make sure the requested seeking pos doesn't exceed the length
+            let p = QWORD(time * 120)
+            BASS_ChannelSetPosition(self.stream, p, DWORD(BASS_POS_MIDI_TICK))
+            // clear lyrics
+//            lyrics = ""
+//            self.lyricsText = ""
+        }
+    }
+    
+    // MARK: Playback Intents
  
     /// start playing
     @MainActor
@@ -172,12 +225,14 @@ class SimpleModel {
      
      - Remark
      This function can be used to free all types of channel, instead of using either BASS_StreamFree or BASS_MusicFree or BASS_ChannelStop depending on the channel type.
+     
+     > Similar to `streamFree()` method.
      */
-//    @MainActor
-//    func channelFree() {
-//        self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
-//        isPlaying = false
-//    }
+    @MainActor
+    func channelFree() {
+        self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
+        isPlaying = false
+    }
 }
 
 // MARK: - Extensions

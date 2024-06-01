@@ -28,10 +28,6 @@ struct SimpleModelView: View {
         })
         // This Button should definitely be disabled when there are no tracks loaded
         .disabled(model.isUnloaded)
-        
-        Button("Stream Free") {
-            model.streamFree()
-        }
     }
 }
 
