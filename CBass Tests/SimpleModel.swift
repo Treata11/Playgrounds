@@ -61,6 +61,8 @@ class SimpleModel {
     }
     /// Length of the MIDI **in seconds**
     private(set) var length: Double = .zero
+    /// Length of the MIDI **in seconds** which will be affected by the changes of `tempo` initiated by the user
+    private(set) var affectedDuration: Double = .zero
     /// tempo adjustment
     var speed: Float = 1
     
@@ -139,8 +141,11 @@ class SimpleModel {
     func changeTempo(by value: Float) {
         if !isUnloaded {
             let speed = (20+value)/20 // up to +/- 50% bpm
+            self.speed = speed
             // apply tempo adjustment
             BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
+            // Changes in tempo affects the duration of the playback
+            self.affectedDuration = self.length / Double(speed)
         }
     }
     
@@ -153,7 +158,9 @@ class SimpleModel {
             // the length in bytes
             let len: QWORD = BASS_ChannelGetLength(self.stream, DWORD(BASS_POS_BYTE))
             // the length in seconds
-            self.length = BASS_ChannelBytes2Seconds(self.stream, len)
+            let time = BASS_ChannelBytes2Seconds(self.stream, len)
+            self.length = time
+            self.affectedDuration = time
         }
     }
     

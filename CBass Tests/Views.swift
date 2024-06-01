@@ -11,6 +11,8 @@ struct SimpleModelView: View {
     @Environment(SimpleModel.self) private var model
     
     @State private var playbackPosition: Double = .zero
+    /// Modify the tempo
+    @State var playbackSpeed: Float = .zero
     
     var body: some View {
         Text("A Default MIDI file has been chosen for playback!").bold()
@@ -22,10 +24,16 @@ struct SimpleModelView: View {
                 }
             }
         
-        Text("Length: \(Int(model.length))")
-            .onChange(of: model.stream) {
-                model.getLength()
+        Group {
+            Text("Length: \(Int(model.length))")
+            Text("Real Duration: \(Int(model.affectedDuration))")
+            if model.speed != 1 {
+                Text("\(model.speed)")
             }
+        }
+        .onChange(of: model.stream) {
+            model.getLength()
+        }
         
         Group {
             Text("Tempo: \(Int(model.tempo))")
@@ -34,6 +42,11 @@ struct SimpleModelView: View {
         .onChange(of: model.stream) {
             model.timeProc()
         }
+        
+        Slider(value: $playbackSpeed, in: -10...10)
+            .onChange(of: playbackSpeed) {
+                model.changeTempo(by: playbackSpeed)
+            }
         
         Divider()
 
@@ -58,6 +71,8 @@ struct MidiChooserView: View {
     @Environment(SimpleModel.self) private var model
     
     @State private var midiURL: URL? = nil
+    /// Modify the tempo
+    @State var playbackSpeed: Float = .zero
 
     var body: some View {
         VStack {
@@ -92,15 +107,29 @@ struct MidiChooserView: View {
                 // This Button should definitely be disabled when there are no tracks loaded
                 .disabled(model.isUnloaded)
                 
-                Text("Length: \(Int(model.length))")
-                    .onChange(of: model.stream) {
-                        model.getLength()
+                Group {
+                    Text("Length: \(Int(model.length))")
+                    Text("Real Duration: \(Int(model.affectedDuration))")
+                    if model.speed != 1 {
+                        Text("\(model.speed)")
                     }
+                }
+                .onChange(of: model.stream) {
+                    model.getLength()
+                }
                 
                 Group {
                     Text("Tempo: \(Int(model.tempo))")
                     Text("Position: \(Int(model.position))")
                 }
+                .onChange(of: model.stream) {
+                    model.timeProc()
+                }
+                
+                Slider(value: $playbackSpeed, in: -10...10)
+                    .onChange(of: playbackSpeed) {
+                        model.changeTempo(by: playbackSpeed)
+                    }
                 
                 Divider()
                 
