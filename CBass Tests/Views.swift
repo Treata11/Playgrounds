@@ -10,6 +10,8 @@ import SwiftUI
 struct SimpleModelView: View {
     @Environment(SimpleModel.self) private var model
     
+    @State private var playbackPosition: Double = .zero
+    
     var body: some View {
         Text("A Default MIDI file has been chosen for playback!").bold()
             .onAppear {
@@ -98,9 +100,6 @@ struct MidiChooserView: View {
                 Group {
                     Text("Tempo: \(Int(model.tempo))")
                     Text("Position: \(Int(model.position))")
-                }
-                .onChange(of: model.stream) {
-                    model.timeProc()
                 }
                 
                 Divider()

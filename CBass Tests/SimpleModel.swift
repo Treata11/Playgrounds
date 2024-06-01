@@ -41,10 +41,24 @@ class SimpleModel {
      */
     var modelIsPaused = false
     
-    /// Indicates whether if the **loaded-stream** is playing or not.
-    var isPlaying: Bool = true
+    /// Indicates whether if a **loaded-stream** is playing or not.
+    var isPlaying: Bool = true {
+        willSet {
+            if !newValue {
+                disableTimer()
+            } else {
+                timeProc()
+            }
+        }
+    }
     /// `True` if the sample stream's resources (`var stream`) is free.
-    var isUnloaded: Bool = true
+    var isUnloaded: Bool = true {
+        didSet {
+            if oldValue {
+                disableTimer()
+            }
+        }
+    }
     /// Length of the MIDI **in seconds**
     private(set) var length: Double = .zero
     /// tempo adjustment
@@ -165,21 +179,22 @@ class SimpleModel {
     var tempo: Double = 0.0
     private var voices: Float = 0
     private var fontInfo = ""
+    
+    private var timer: Timer?
+    
+    func disableTimer() {
+        // disable the `timeProc` timer to avoid unnecessary CPU time
+        timer?.invalidate()
+        timer = nil
+    }
 
     // !!!: WIP
-    @MainActor
+//    @MainActor
     func timeProc() {
-        // TODO: Deactivate this timer when the playback is paused or stopped.
-        Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [self] timer in
-            #if DEBUG
-                let now = Date.now
-                print("\n\nSimpleModel; timeProc(); timer: \(now.timeIntervalSince(timer.fireDate))")
-            #endif
-            
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [self] timer in
             if !isUnloaded {
                 // get position in ticks
                 let tick: QWORD = BASS_ChannelGetPosition(self.stream, DWORD(BASS_POS_MIDI_TICK))
-                print("tick: \(tick)")
                 position = Double(tick) / 120.0
                 // get the file's tempo
                 let tempo = BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_TEMPO))
