@@ -37,7 +37,7 @@ struct SimpleModelView: View {
         
         Group {
             Text("Tempo: \(Int(model.tempo))")
-            Text("Position: \(Int(model.position))")
+            Text("Position In Ticks: \(Int(model.posInTicks))")
         }
         .onChange(of: model.stream) {
             model.timeProc()
@@ -120,7 +120,7 @@ struct MidiChooserView: View {
                 
                 Group {
                     Text("Tempo: \(Int(model.tempo))")
-                    Text("Position: \(Int(model.position))")
+                    Text("Position In Ticks: \(Int(model.posInTicks))")
                 }
                 .onChange(of: model.stream) {
                     model.timeProc()
@@ -142,6 +142,30 @@ struct MidiChooserView: View {
                             model.isUnloaded: \(model.isUnloaded)
                         """)
                 }
+                
+                Button("Read Notes") {
+                    model.readNotes()
+                }
+                
+//                Group {
+//                    Text("Current NoteEvent: \(model.noteEvent)").bold()
+//                    Text("Current KeyPressEvent: \(model.keyPressEvent)").bold()
+//                    Text("Current ScaleTuneEvent: \(model.scaleTuneEvent)").bold()
+//                    Text("Bruh: \(model.bruh)")
+//                    Text("Current Drum Event: \(model.drumEvent)")
+//                    Text("Current All Note Events: \(model.allNoteEvents)")
+//                    Text("Current Special Note Events: \(model.specialNoteEvents)")
+//                }
+//                .onTapGesture {
+//                    model.getNoteEvent()
+//                }
+//                
+//                Divider()
+//                
+//                Text("All Events count: \(model.eventsCount)")
+//                    .onTapGesture {
+//                        model.getAllEvents()
+//                    }
             }
         }
     }

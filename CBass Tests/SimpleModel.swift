@@ -7,6 +7,7 @@
 
 import Foundation
 import BassMIDI
+import Bass
 
 // load optional plugins for packed soundfonts (others may be used too)
 //import BassFLAC
@@ -140,7 +141,7 @@ class SimpleModel {
     @MainActor
     func changeTempo(by value: Float) {
         if !isUnloaded {
-            let speed = (20+value)/20 // up to +/- 50% bpm
+            let speed = (20 + value) / 20 // up to +/- 50% bpm
             self.speed = speed
             // apply tempo adjustment
             BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
@@ -182,7 +183,7 @@ class SimpleModel {
     }
     
     /// in Ticks
-    var position: Double = 0.0
+    var posInTicks: Double = .zero
     var tempo: Double = 0.0
     private var voices: Float = 0
     private var fontInfo = ""
@@ -202,7 +203,8 @@ class SimpleModel {
             if !isUnloaded {
                 // get position in ticks
                 let tick: QWORD = BASS_ChannelGetPosition(self.stream, DWORD(BASS_POS_MIDI_TICK))
-                position = Double(tick) / 120.0
+                posInTicks = Double(tick) / 120.0
+                
                 // get the file's tempo
                 let tempo = BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_TEMPO))
                 self.tempo = Double(speed * 60000000.0 / Float(tempo))
@@ -297,6 +299,94 @@ class SimpleModel {
         self.isUnloaded = (BASS_ChannelFree(self.stream) == 0)
         isPlaying = false
     }
+    
+    // MARK: MIDI Events
+    
+    /*
+    var noteEvent: Int = .zero
+    var keyPressEvent: Int = .zero
+    var scaleTuneEvent: Int = .zero
+    var bruh: Int = .zero
+    var drumEvent: Int = .zero
+    var allNoteEvents: Int = .zero
+    var specialNoteEvents: Int = .zero
+    
+    /**
+     Retrieves the current value of an event in a channel of a MIDI stream.
+     
+     see:
+     https://www.un4seen.com/doc/#bassmidi/BASS_MIDI_StreamGetEvent.html
+     */
+    @MainActor
+    func getNoteEvent() {
+        if !isUnloaded {
+            /**
+             The MIDI_EVENT_NOTE event value will be 1 if the specified key is pressed and 0 if not.
+             The MIDI_EVENT_NOTES event can be used to check how many keys in total are pressed in the specified channel. If a key is simultaneously pressed multiple times, it will still only be counted once.
+             */
+            self.noteEvent = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_NOTE)))
+            self.keyPressEvent = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_KEYPRES)))
+            self.scaleTuneEvent = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_SCALETUNING)))
+            
+            self.bruh = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_TEMPO)))
+            self.drumEvent = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_DRUM_CUTOFF)))
+            
+            self.allNoteEvents = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_NOTES)))
+            self.specialNoteEvents = Int(BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_NOTES)))
+            
+//            let error = BASS_ErrorGetCode()
+//            print("getNoteEvent() error: \(error)")
+        }
+    }
+    
+    var events: [BASS_MIDI_EVENT] = []
+    var eventsCount: UInt32 = .zero
+    
+    @MainActor
+    func getAllEvents() {
+        self.eventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, 0, .none)
+        // FIXME: Pointer to the `events` Crashes the app
+//        BASS_MIDI_StreamGetEvents(self.stream, -1, 0, &events)
+        
+        events.withUnsafeMutableBufferPointer { buffer in
+            BASS_MIDI_StreamGetEvents(self.stream, -1, 0, buffer.baseAddress)
+        }
+    }
+     */
+    
+//    BASS_ChannelSetSync(midistream, BASS_SYNC_MIDI_EVENT, MIDI_EVENT_NOTE, NoteSyncProc, 0); // set a sync on MIDI_EVENT_NOTE events
+//
+//    ...
+//
+//    void CALLBACK NoteSyncProc(HSYNC handle, DWORD channel, DWORD data, void *user)
+//    {
+//        DWORD midichan=HIWORD(data); // MIDI channel
+//        DWORD note=LOBYTE(data); // key number
+//        DWORD velocity=HIBYTE(data); // key velocity (0=release)
+//        ...
+//    }
+    
+    var currentKeynote: DWORD?
+    
+    /**
+     https://www.un4seen.com/forum/?topic=16562.msg115854#msg115854
+     */
+    func readNotes() {
+        // Set a sync on MIDI_EVENT_NOTE events
+        let syncHandle = BASS_ChannelSetSync(self.stream, DWORD(BASS_SYNC_MIDI_EVENT), QWORD(MIDI_EVENT_NOTE), noteSyncProc, .none)
+    }
+}
+
+private func noteSyncProc(handle: HSYNC, channel: DWORD, data: DWORD, user: UnsafeMutableRawPointer?) {
+    // MIDI channel
+    let midiChannel = (data >> 16) & 0xFF // Extract MIDI channel from the upper 8 bits of data
+    // key number
+    let note = (data >> 8) & 0xFF // Extract note from the middle 8 bits of data
+    // key velocity (0=release)
+    let velocity = data & 0xFF // Extract velocity from the lower 8 bits of data
+
+    // Do something with the MIDI event data...
+    print("noteSyncProc; keynote: \(note)")
 }
 
 // MARK: - Extensions
