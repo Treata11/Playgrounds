@@ -143,29 +143,16 @@ struct MidiChooserView: View {
                         """)
                 }
                 
-                Button("Read Notes") {
-                    model.readNotes()
+                Divider()
+                
+                Text("Useful for visualization purposes")
+                Button("Get Notes") {
+                    model.getNotes()
                 }
                 
-//                Group {
-//                    Text("Current NoteEvent: \(model.noteEvent)").bold()
-//                    Text("Current KeyPressEvent: \(model.keyPressEvent)").bold()
-//                    Text("Current ScaleTuneEvent: \(model.scaleTuneEvent)").bold()
-//                    Text("Bruh: \(model.bruh)")
-//                    Text("Current Drum Event: \(model.drumEvent)")
-//                    Text("Current All Note Events: \(model.allNoteEvents)")
-//                    Text("Current Special Note Events: \(model.specialNoteEvents)")
-//                }
-//                .onTapGesture {
-//                    model.getNoteEvent()
-//                }
-//                
-//                Divider()
-//                
-//                Text("All Events count: \(model.eventsCount)")
-//                    .onTapGesture {
-//                        model.getAllEvents()
-//                    }
+                Button("set a sync on MIDI_EVENT_NOTE events") {
+                    model.setSync()
+                }
             }
         }
     }
