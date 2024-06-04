@@ -148,6 +148,10 @@ struct MidiChooserView: View {
                 Text("Useful for visualization purposes")
                 Button("Get Notes") {
                     model.getNotes()
+                    print("""
+                        first Note: \(model.notes.first!)
+                        event count: \(model.eventsCount)
+                        """)
                 }
                 
                 Button("set a sync on MIDI_EVENT_NOTE events") {

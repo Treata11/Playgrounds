@@ -43,7 +43,7 @@ class SimpleModel {
     var modelIsPaused = false
     
     /// Indicates whether if a **loaded-stream** is playing or not.
-    var isPlaying: Bool = true {
+    private(set) var isPlaying: Bool = true {
         willSet {
             if !newValue {
                 disableTimer()
@@ -53,7 +53,7 @@ class SimpleModel {
         }
     }
     /// `True` if the sample stream's resources (`var stream`) is free.
-    var isUnloaded: Bool = true {
+    private(set) var isUnloaded: Bool = true {
         didSet {
             if oldValue {
                 disableTimer()
@@ -65,7 +65,7 @@ class SimpleModel {
     /// Length of the MIDI **in seconds** which will be affected by the changes of `tempo` initiated by the user
     private(set) var affectedDuration: Double = .zero
     /// tempo adjustment
-    var speed: Float = 1
+    private(set) var speed: Float = 1
     
     init(soundfontPath: String? = soundfontPath) {
         print("------ SimpleModel Initiated ------")
@@ -133,22 +133,7 @@ class SimpleModel {
         print("setupSoundfont(); font: \(newfont)")
     }
     
-    // MARK: - Misc
-    
-    /**
-     
-     */
-    @MainActor
-    func changeTempo(by value: Float) {
-        if !isUnloaded {
-            let speed = (20 + value) / 20 // up to +/- 50% bpm
-            self.speed = speed
-            // apply tempo adjustment
-            BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
-            // Changes in tempo affects the duration of the playback
-            self.affectedDuration = self.length / Double(speed)
-        }
-    }
+    // MARK: - Intents
     
     /**
      Retrieves the length of a channel.
@@ -165,26 +150,12 @@ class SimpleModel {
         }
     }
     
-    // TODO: Implement the buffers
-//    /// lyrics buffer
-//    var lyrics = ""
-//    var lyricsText = ""
-    
-    @MainActor
-    func seek(to time: Double) {
-        if !isUnloaded {
-            // TODO: Make sure the requested seeking pos doesn't exceed the length
-            let p = QWORD(time * 120)
-            BASS_ChannelSetPosition(self.stream, p, DWORD(BASS_POS_MIDI_TICK))
-            // clear lyrics
-//            lyrics = ""
-//            self.lyricsText = ""
-        }
-    }
+    // MARK: Timer Processes
     
     /// in Ticks
-    var posInTicks: Double = .zero
-    var tempo: Double = 0.0
+    private(set) var posInTicks: Double = .zero
+    private(set) var tempo: Double = 0.0
+    
     private var voices: Float = 0
     private var fontInfo = ""
     
@@ -243,7 +214,7 @@ class SimpleModel {
         }
     }
     
-    /// Stops the output, pausing all musics/samples/streams on it.
+    /// Stops the output, pausing all `musics/samples/streams` on it.
     @MainActor
     func pause() {
         if !isUnloaded {
@@ -266,6 +237,33 @@ class SimpleModel {
     }
     
     /**
+     Seek to an arbitrary position of the playback
+     */
+    @MainActor
+    func seek(to time: TimeInterval) {
+        if !isUnloaded {
+            // TODO: Make sure the requested seeking pos doesn't exceed the length
+            let p = QWORD(time * 120)
+            BASS_ChannelSetPosition(self.stream, p, DWORD(BASS_POS_MIDI_TICK))
+        }
+    }
+    
+    /**
+     Changes the speed of playback which affects the playtime and tempo of the `stream`
+     */
+    @MainActor
+    func changeTempo(by value: Float) {
+        if !isUnloaded {
+            let speed = (20 + value) / 20 // up to +/- 50% bpm
+            self.speed = speed
+            // apply tempo adjustment
+            BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
+            // Changes in tempo affects the duration of the playback
+            self.affectedDuration = self.length / Double(speed)
+        }
+    }
+    
+    /**
      Frees a sample stream's resources, including any `sync/DSP/FX` it has.
      
      > free old stream before opening new
@@ -273,12 +271,7 @@ class SimpleModel {
     @MainActor
     func streamFree() {
         BASS_StreamFree(stream)
-        
-//        #if DEBUG
-//            let err = BASS_ErrorGetCode
-//            print("streamFree() Error code: \(err)")
-//        #endif
-        
+
         self.isUnloaded = true
         
         isPlaying = false
@@ -302,8 +295,9 @@ class SimpleModel {
     
     // MARK: MIDI Events
     
-    var notes: [BASS_MIDI_EVENT] = []
-    var notesCount: UInt32 = .zero
+    private(set) var notes: [BASS_MIDI_EVENT] = []
+    private(set) var notesCount: UInt32 = .zero
+    private(set) var eventsCount: DWORD = .zero
     
     /**
      Retrieves the entire Note-Events of the current `stream`.
@@ -316,19 +310,15 @@ class SimpleModel {
         let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD((MIDI_EVENT_NOTE >> 8) & 0xFF), nil)
         self.notesCount = numEvents
         // Allocate memory for the events
-        var notes = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
+        self.notes = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
         
         // Retrieve the events
-        let numRetrievedEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE), &notes)
-        
-        // Process the retrieved events
-        if numRetrievedEvents > 0 {
-            // Access the retrieved events in the "notes" array
-            self.notes = notes
-        }
+        /// If successful, the number of events is returned, else -1 is returned.
+        self.eventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE), &notes)
     }
 
-    // MARK: Experimental; syncing APIs
+    // MARK: - Experimental
+    // syncing APIs
     
     var syncHandle: HSYNC = .zero
     
