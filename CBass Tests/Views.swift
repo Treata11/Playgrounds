@@ -148,9 +148,25 @@ struct MidiChooserView: View {
                 Text("Useful for visualization purposes")
                 Button("Get Notes") {
                     model.getNotes()
+                    let firstNote = model.notes.first!
+                    let parameter: UInt32 = firstNote.param
+                    
+                    // LOBYTE = key number (0-127, 60=middle C)
+                    // FIXME: The LOBYTE operation below is wrong
+//                    let keyNumber = parameter & 0xFF 
+                    let keyNumber = parameter.lowByte
+
+                    // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
+//                    let velocity = (parameter >> 8) & 0xFF 
+                    let velocity = parameter.highByte
+
+                    
                     print("""
-                        first Note: \(model.notes.first!)
                         event count: \(model.eventsCount)
+                        first Note: \(firstNote) ->
+                            parameter: \(parameter)
+                            keyNumber: \(keyNumber)
+                            velocity: \(velocity)
                         """)
                 }
                 
@@ -166,3 +182,7 @@ struct MidiChooserView: View {
     MidiChooserView()
         .environment(SimpleModel())
 }
+
+
+
+

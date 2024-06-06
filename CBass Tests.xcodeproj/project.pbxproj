@@ -41,6 +41,7 @@
 		61F35DF82BFC9DEE00204C90 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F35DF72BFC9DEE00204C90 /* ContentView.swift */; };
 		61F35DFA2BFC9DF000204C90 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61F35DF92BFC9DF000204C90 /* Assets.xcassets */; };
 		61F35DFD2BFC9DF000204C90 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61F35DFC2BFC9DF000204C90 /* Preview Assets.xcassets */; };
+		61F5066B2C11B326003F6298 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F5066A2C11B326003F6298 /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		61F35DF72BFC9DEE00204C90 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		61F35DF92BFC9DF000204C90 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		61F35DFC2BFC9DF000204C90 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		61F5066A2C11B326003F6298 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +120,7 @@
 				61C6A0CE2C039FBE00854F5E /* Tests.swift */,
 				611D53ED2C08D19200644846 /* SimpleModel.swift */,
 				6145D7102C09CA1500EADA6A /* Views.swift */,
+				61F5066A2C11B326003F6298 /* Extensions.swift */,
 				611D53E92C08A0AE00644846 /* YDP-GrandPiano.sf2 */,
 				61F35DF92BFC9DF000204C90 /* Assets.xcassets */,
 				613EA5022BFCAC8300FE41C4 /* JoyToTheWorld.mid */,
@@ -244,6 +247,7 @@
 				61C6A0CF2C039FBE00854F5E /* Tests.swift in Sources */,
 				61F35DF62BFC9DEE00204C90 /* CBass_TestsApp.swift in Sources */,
 				6103AEFF2C089AC5001588E7 /* BassMIDIModel.swift in Sources */,
+				61F5066B2C11B326003F6298 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
