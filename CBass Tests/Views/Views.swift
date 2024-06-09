@@ -25,7 +25,7 @@ struct SimpleModelView: View {
             }
         
         Group {
-            Text("Length: \(Int(model.length))")
+            Text("Duration: \(Int(model.duration))")
             Text("Real Duration: \(Int(model.affectedDuration))")
             if model.speed != 1 {
                 Text("\(model.speed)")
@@ -108,7 +108,7 @@ struct MidiChooserView: View {
                 .disabled(model.isUnloaded)
                 
                 Group {
-                    Text("Length: \(Int(model.length))")
+                    Text("Duration: \(Int(model.duration))")
                     Text("Real Duration: \(Int(model.affectedDuration))")
                     if model.speed != 1 {
                         Text("\(model.speed)")
@@ -148,8 +148,11 @@ struct MidiChooserView: View {
                 Text("Useful for visualization purposes")
                 Button("Get Notes") {
                     model.getNotes()
-                    let firstNote = model.notes.first!
-                    let parameter: UInt32 = firstNote.param
+                    let thirdNote = model.notes[2]
+                    let lastNote = model.notes.last!
+                    
+                    let refinedPosition = thirdNote.pos / 120
+                    let parameter: UInt32 = thirdNote.param
                     
                     // LOBYTE = key number (0-127, 60=middle C)
                     // FIXME: The LOBYTE operation below is wrong
@@ -163,16 +166,28 @@ struct MidiChooserView: View {
                     
                     print("""
                         event count: \(model.eventsCount)
-                        first Note: \(firstNote) ->
+                        
+                        third Note: \(thirdNote) ->
                             parameter: \(parameter)
                             keyNumber: \(keyNumber)
                             velocity: \(velocity)
+                            note position: \(refinedPosition)
+                        -------------------------------------------------------
+                        length of the track in ticks: \(Int(model.lengthInTicks))
+                        last Note: \(lastNote) ->
+                            note position: \(lastNote.pos / 120)
+                            
                         """)
                 }
                 
                 Button("set a sync on MIDI_EVENT_NOTE events") {
                     model.setSync()
                 }
+                
+                Spacer()
+                Divider()
+                
+                NotePalette()
             }
         }
     }
@@ -182,7 +197,3 @@ struct MidiChooserView: View {
     MidiChooserView()
         .environment(SimpleModel())
 }
-
-
-
-

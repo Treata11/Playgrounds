@@ -61,9 +61,11 @@ class SimpleModel {
         }
     }
     /// Length of the MIDI **in seconds**
-    private(set) var length: Double = .zero
+    private(set) var duration: Double = .zero
     /// Length of the MIDI **in seconds** which will be affected by the changes of `tempo` initiated by the user
     private(set) var affectedDuration: Double = .zero
+    /// Length of the MIDI **in ticks**
+    private(set) var lengthInTicks: QWORD = .zero
     /// tempo adjustment
     private(set) var speed: Float = 1
     
@@ -142,11 +144,16 @@ class SimpleModel {
     func getLength() {
         if !isUnloaded {
             // the length in bytes
-            let len: QWORD = BASS_ChannelGetLength(self.stream, DWORD(BASS_POS_BYTE))
-            // the length in seconds
-            let time = BASS_ChannelBytes2Seconds(self.stream, len)
-            self.length = time
+            let bytes: QWORD = BASS_ChannelGetLength(self.stream, DWORD(BASS_POS_BYTE))
+            // the length in Seconds
+            let time = BASS_ChannelBytes2Seconds(self.stream, bytes)
+            self.duration = time
             self.affectedDuration = time
+            
+            // TODO: Question: Why the ticks are divided by 120?
+            // the length in Ticks
+            let length: QWORD = BASS_ChannelGetLength(self.stream, DWORD(BASS_POS_MIDI_TICK))
+            self.lengthInTicks = length / 120
         }
     }
     
@@ -159,6 +166,7 @@ class SimpleModel {
     private var voices: Float = 0
     private var fontInfo = ""
     
+    // FIXME: The timer doesn't go to sleep when the stream finishes
     private var timer: Timer?
     
     func disableTimer() {
@@ -174,10 +182,12 @@ class SimpleModel {
             if !isUnloaded {
                 // get position in ticks
                 let tick: QWORD = BASS_ChannelGetPosition(self.stream, DWORD(BASS_POS_MIDI_TICK))
-                posInTicks = Double(tick) / 120.0
+                // TODO: Question: Why the ticks are divided by 120?
+                posInTicks = Double(tick) / 120
                 
                 // get the file's tempo
                 let tempo = BASS_MIDI_StreamGetEvent(self.stream, 0, DWORD(MIDI_EVENT_TEMPO))
+                // TODO: Question: Where did the `60000000.0` come from?
                 self.tempo = Double(speed * 60000000.0 / Float(tempo))
                 BASS_ChannelGetAttribute(stream, DWORD(BASS_ATTRIB_MIDI_VOICES_ACTIVE), &self.voices)
             }
@@ -259,7 +269,7 @@ class SimpleModel {
             // apply tempo adjustment
             BASS_ChannelSetAttribute(self.stream, DWORD(BASS_ATTRIB_MIDI_SPEED), speed)
             // Changes in tempo affects the duration of the playback
-            self.affectedDuration = self.length / Double(speed)
+            self.affectedDuration = self.duration / Double(speed)
         }
     }
     
