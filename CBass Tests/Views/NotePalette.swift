@@ -16,7 +16,9 @@ struct NotePalette: View {
             let width = size.width
             let height = size.height
             
-            model.notes.forEach { note in
+            let heightCoefficient = height / CGFloat(model.lengthInTicks * 120)
+            
+            model.noteEvents.forEach { note in
                 // MARK: Parameters
                 let parameter = note.param
 
@@ -24,18 +26,21 @@ struct NotePalette: View {
                 let keyNumber = parameter.lowByte
                 // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
                 let velocity = parameter.highByte
-                /// Position of the note
-                let refinedPosition = note.pos / 120
+                /// The position of the note **in ticks**
+                let tick = CGFloat(note.tick)
+                /// Position of the note **in bytes**
+                let position = note.pos
                 
                 // MARK: Draw
                 context.fill(
-                    // FIXME: The height of the notes isn't relative to the length of the track
                     Path(CGRect(
                         x: CGFloat(keyNumber) * width / 128,
-                        y: CGFloat(refinedPosition) / height,
+                        y: CGFloat(position) / height,
+//                        y: CGFloat(refinedPosition) * heightCoefficient,
                         width: width * 0.9 / 128,
-                        // DELETE The * 4
-                        height: CGFloat(velocity) * 4 / height)
+                        // The sum of all the notes' heights should be the the height of the canvas
+                        height: CGFloat(tick) / height)
+//                        height: CGFloat(tick) * heightCoefficient)
                     ),
                     with: .color(.red)
                 )
@@ -48,9 +53,11 @@ struct NotePalette: View {
 
 #Preview("NotePalette") {
     VStack {
-        Text("It's not going to draw anything unless a midi file is selected and the notes are read!").bold()
-        
-        NotePalette()
+        Text("It's not going to draw anything unless a midi file is selected and the notes are read! \nTap on the Get Notes button").bold()
+        Group {
+            SimpleModelView()
+            NotePalette()
+        }
             .environment(SimpleModel())
     }
 }

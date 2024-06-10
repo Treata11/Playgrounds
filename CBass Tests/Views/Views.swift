@@ -57,6 +57,10 @@ struct SimpleModelView: View {
         })
         // This Button should definitely be disabled when there are no tracks loaded
         .disabled(model.isUnloaded)
+        
+        Button("Get All Notes") {
+            model.getAllNoteEvents()
+        }
     }
 }
 
@@ -146,45 +150,60 @@ struct MidiChooserView: View {
                 Divider()
                 
                 Text("Useful for visualization purposes")
-                Button("Get Notes") {
-                    model.getNotes()
-                    let thirdNote = model.notes[2]
-                    let lastNote = model.notes.last!
+//                Button("Get All Notes") {
+//                    model.getAllNoteEvents()
+//                    print("note count: \(model.notesCount)")
+//                    
+//                    for i in 0...5 {
+//                        let note = model.noteEvents[i]
+//                        
+//                        let refinedPosition = note.pos / 120
+//                        let parameter: UInt32 = note.param
+//                        
+//                        // LOBYTE = key number (0-127, 60=middle C)
+//                        let keyNumber = parameter.lowByte
+//
+//                        // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
+//                        let velocity = parameter.highByte
+//                        
+//                        print("""
+//                            \(i+1)th Note: \(note) ->
+//                                keyNumber: \(keyNumber)
+//                                velocity: \(velocity)
+//                                note position: \(refinedPosition)
+//                            """)
+//                    }
+//                }
+                
+                Button("Get Note-On Events") {
+                    model.getAllNoteEvents()
+                    model.getNoteOnEvents()
                     
-                    let refinedPosition = thirdNote.pos / 120
-                    let parameter: UInt32 = thirdNote.param
-                    
-                    // LOBYTE = key number (0-127, 60=middle C)
-                    // FIXME: The LOBYTE operation below is wrong
-//                    let keyNumber = parameter & 0xFF 
-                    let keyNumber = parameter.lowByte
-
-                    // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
-//                    let velocity = (parameter >> 8) & 0xFF 
-                    let velocity = parameter.highByte
-
-                    
-                    print("""
-                        event count: \(model.eventsCount)
+                    for i in 0...5 {
+                        let note = model.noteOnEvents[i]
                         
-                        third Note: \(thirdNote) ->
-                            parameter: \(parameter)
-                            keyNumber: \(keyNumber)
-                            velocity: \(velocity)
-                            note position: \(refinedPosition)
-                        -------------------------------------------------------
-                        length of the track in ticks: \(Int(model.lengthInTicks))
-                        last Note: \(lastNote) ->
-                            note position: \(lastNote.pos / 120)
-                            
-                        """)
+                        let refinedPosition = note.pos / 120
+                        let parameter: UInt32 = note.param
+                        
+                        // LOBYTE = key number (0-127, 60=middle C)
+                        let keyNumber = parameter.lowByte
+
+                        // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
+                        let velocity = parameter.highByte
+                        
+                        print("""
+                            \(i+1)th Note: \(note) ->
+                                keyNumber: \(keyNumber)
+                                velocity: \(velocity)
+                                note position: \(refinedPosition)
+                            """)
+                    }
                 }
                 
                 Button("set a sync on MIDI_EVENT_NOTE events") {
                     model.setSync()
                 }
-                
-                Spacer()
+
                 Divider()
                 
                 NotePalette()

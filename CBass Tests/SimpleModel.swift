@@ -305,26 +305,40 @@ class SimpleModel {
     
     // MARK: MIDI Events
     
-    private(set) var notes: [BASS_MIDI_EVENT] = []
+    /// Includes both `note-on` & `note-off` events.
+    private(set) var noteEvents: [BASS_MIDI_EVENT] = []
     private(set) var notesCount: UInt32 = .zero
     private(set) var eventsCount: DWORD = .zero
     
     /**
-     Retrieves the entire Note-Events of the current `stream`.
+     Retrieves the entire Note-Events (both `note-on` & `note-off`) of the current `stream`.
      
      > Usefull for visualization purposes
      */
     @MainActor
-    func getNotes() {
+    func getAllNoteEvents() {
         // Determine the number of events
-        let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD((MIDI_EVENT_NOTE >> 8) & 0xFF), nil)
-        self.notesCount = numEvents
+        let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE.highByte), nil)
+        // Divided by two, since every note has been counted twice (note-on, note-off)
+        self.notesCount = numEvents / 2
         // Allocate memory for the events
-        self.notes = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
+        self.noteEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
         
         // Retrieve the events
         /// If successful, the number of events is returned, else -1 is returned.
-        self.eventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE), &notes)
+        self.eventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE), &noteEvents)
+    }
+    
+    /// `MIDI_EVENT_NOTE` events with a **non-0 velocity**
+    private(set) var noteOnEvents: [BASS_MIDI_EVENT] = []
+    
+    @MainActor
+    func getNoteOnEvents() {
+        // Determine the number of note-on events
+        let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES.highByte), nil)
+        self.noteOnEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
+        
+        BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES), &noteOnEvents)
     }
 
     // MARK: - Experimental
