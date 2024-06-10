@@ -18,29 +18,27 @@ struct NotePalette: View {
             
             let heightCoefficient = height / CGFloat(model.lengthInTicks * 120)
             
-            model.noteEvents.forEach { note in
+            model.noteOnEvents.forEach { noteOn in
                 // MARK: Parameters
-                let parameter = note.param
+                let parameter = noteOn.param
 
                 // LOBYTE = key number (0-127, 60=middle C)
                 let keyNumber = parameter.lowByte
                 // HIBYTE = velocity (0=release, 1-127=press, 255=stop)
-                let velocity = parameter.highByte
+//                let velocity = parameter.highByte
                 /// The position of the note **in ticks**
-                let tick = CGFloat(note.tick)
+                let tick = CGFloat(noteOn.tick)
                 /// Position of the note **in bytes**
-                let position = note.pos
+                let position = noteOn.pos
                 
                 // MARK: Draw
                 context.fill(
                     Path(CGRect(
                         x: CGFloat(keyNumber) * width / 128,
-                        y: CGFloat(position) / height,
-//                        y: CGFloat(refinedPosition) * heightCoefficient,
+                        y: CGFloat(tick) * heightCoefficient,
                         width: width * 0.9 / 128,
-                        // The sum of all the notes' heights should be the the height of the canvas
-                        height: CGFloat(tick) / height)
-//                        height: CGFloat(tick) * heightCoefficient)
+                        // The length is retrieved in ticks
+                        height: CGFloat(model.getLength(of: noteOn) ?? .zero) * heightCoefficient)
                     ),
                     with: .color(.red)
                 )

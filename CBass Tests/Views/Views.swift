@@ -177,7 +177,7 @@ struct MidiChooserView: View {
                 
                 Button("Get Note-On Events") {
                     model.getAllNoteEvents()
-                    model.getNoteOnEvents()
+                    model.getSeperatedNoteEvents()
                     
                     for i in 0...5 {
                         let note = model.noteOnEvents[i]

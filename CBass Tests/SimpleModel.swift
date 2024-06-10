@@ -331,16 +331,57 @@ class SimpleModel {
     
     /// `MIDI_EVENT_NOTE` events with a **non-0 velocity**
     private(set) var noteOnEvents: [BASS_MIDI_EVENT] = []
+    /// `MIDI_EVENT_NOTE` events with a **0 velocity**
+    private(set) var noteOffEvents: [BASS_MIDI_EVENT] = []
     
+    /**
+     
+     */
     @MainActor
-    func getNoteOnEvents() {
+    func getSeperatedNoteEvents() {
         // Determine the number of note-on events
         let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES.highByte), nil)
         self.noteOnEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
         
         BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES), &noteOnEvents)
+        
+        // Filter note-off events from the noteEvents array
+        self.noteOffEvents = noteEvents.filter { $0.param.highByte == 0 }
     }
+    
+    @MainActor
+    private func findNoteOffPair(of noteOn: BASS_MIDI_EVENT) -> BASS_MIDI_EVENT? {
+        // Extract the key number and tick value from the specific note-on event
+        let keyNumber = noteOn.param.lowByte
+        let tickValue = noteOn.tick
 
+        // Search for the corresponding note-off event based on key number and tick value
+        if let matchingNoteOffEvent = noteOffEvents.first(where: { $0.param.lowByte == keyNumber && $0.tick >= tickValue }) {
+            // Found a matching note-off event
+            #if DEBUG
+                print("Found matching note-off event: \(matchingNoteOffEvent)")
+            #endif
+            return matchingNoteOffEvent
+        } else {
+            // No matching note-off event found
+            print("No matching note-off event found for the specified note-on event.")
+            return nil
+        }
+    }
+    
+    // TODO: Optimization required
+    /**
+     Returns the length of a specified note (a `note-on` event) **in ticks**
+     */
+    @MainActor
+    func getLength(of note: BASS_MIDI_EVENT) -> UInt32? {
+        if let noteOff = findNoteOffPair(of: note) {
+            return noteOff.tick - note.tick
+        }
+        
+        return nil
+    }
+    
     // MARK: - Experimental
     // syncing APIs
     
