@@ -31,6 +31,8 @@ struct NotePalette: View {
                 /// Position of the note **in bytes**
                 let position = noteOn.pos
                 
+                let noteLength = CGFloat(model.getLength(of: noteOn) ?? .zero)
+                
                 // MARK: Draw
                 context.fill(
                     Path(CGRect(
@@ -38,7 +40,7 @@ struct NotePalette: View {
                         y: CGFloat(tick) * heightCoefficient,
                         width: width * 0.9 / 128,
                         // The length is retrieved in ticks
-                        height: CGFloat(model.getLength(of: noteOn) ?? .zero) * heightCoefficient)
+                        height: noteLength * heightCoefficient)
                     ),
                     with: .color(.red)
                 )

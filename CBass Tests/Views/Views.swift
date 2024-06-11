@@ -178,6 +178,12 @@ struct MidiChooserView: View {
                 Button("Get Note-On Events") {
                     model.getAllNoteEvents()
                     model.getSeperatedNoteEvents()
+                    print("""
+                        entire note events count: \(model.noteEvents.count)
+                        The following counts should be equal:
+                            note-on events count: \(model.noteOnEvents.count)
+                            note-off events count: \(model.noteOffEvents.count)
+                        """)
                     
                     for i in 0...5 {
                         let note = model.noteOnEvents[i]

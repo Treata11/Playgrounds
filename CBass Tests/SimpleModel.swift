@@ -318,11 +318,11 @@ class SimpleModel {
     @MainActor
     func getAllNoteEvents() {
         // Determine the number of events
-        let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE.highByte), nil)
+        let noteEventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTE), nil)
         // Divided by two, since every note has been counted twice (note-on, note-off)
-        self.notesCount = numEvents / 2
+        self.notesCount = noteEventsCount / 2
         // Allocate memory for the events
-        self.noteEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
+        self.noteEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(noteEventsCount))
         
         // Retrieve the events
         /// If successful, the number of events is returned, else -1 is returned.
@@ -340,8 +340,8 @@ class SimpleModel {
     @MainActor
     func getSeperatedNoteEvents() {
         // Determine the number of note-on events
-        let numEvents = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES.highByte), nil)
-        self.noteOnEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(numEvents))
+        let noteOnEventsCount = BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES), nil)
+        self.noteOnEvents = [BASS_MIDI_EVENT](repeating: BASS_MIDI_EVENT(), count: Int(noteOnEventsCount))
         
         BASS_MIDI_StreamGetEvents(self.stream, -1, DWORD(MIDI_EVENT_NOTES), &noteOnEvents)
         
@@ -356,10 +356,11 @@ class SimpleModel {
         let tickValue = noteOn.tick
 
         // Search for the corresponding note-off event based on key number and tick value
+        // TODO: Remove the found element from the `noteOffEvents`
         if let matchingNoteOffEvent = noteOffEvents.first(where: { $0.param.lowByte == keyNumber && $0.tick >= tickValue }) {
             // Found a matching note-off event
             #if DEBUG
-                print("Found matching note-off event: \(matchingNoteOffEvent)")
+//                print("Found matching note-off event: \(matchingNoteOffEvent)")
             #endif
             return matchingNoteOffEvent
         } else {
